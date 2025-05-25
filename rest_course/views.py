@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
-from marschmallow import ValidationError
+from marshmallow import ValidationError
 
 from .schemas import BookSchema
 from .storage import get_all_books, get_book_by_id, add_book, delete_book
