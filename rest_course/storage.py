@@ -1,30 +1,42 @@
-from typing import List
+import os
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from .models import Book
 
 
-_books: List[Book] = []
-_next_id = 1
+DATABASE_URL = (f"postgresql://{os.getenv("POSTGRES_USER")}:{os.getenv("POSTGRES_PASSWORD")}@"
+                f"{os.getenv("POSTGRES_HOST")}:5432/{os.getenv("POSTGRES_DB")}")
 
 
-def get_all_books() -> List[Book]:
-    return _books
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=engine)
+
+
+def get_all_books(limit: int = 10, offset: int = 0) -> list[Book]:
+    with SessionLocal() as session:
+        return session.query(Book).offset(offset).limit(limit).all()
 
 
 def get_book_by_id(book_id: int) -> Book | None:
-    return next((book for book in _books if book["id"] == book_id), None)
+    with SessionLocal() as session:
+        return session.query(Book).filter(Book.id == book_id).first()
 
 
-def add_book(data: dict) -> Book:
-    global _next_id
-    book = {"id": _next_id, **data}
-    _next_id += 1
-    _books.append(book)
-    return book
+def add_book(book: Book) -> Book:
+    with SessionLocal() as session:
+        session.add(book)
+        session.commit()
+        session.refresh(book)
+        return book
 
 
 def delete_book(book_id: int) -> bool:
-    global _books
-    before = len(_books)
-    _books = [b for b in _books if b["id"] != book_id]
-    return len(_books) < before
+    with SessionLocal() as session:
+        book = session.query(Book).filter(Book.id == book_id).first()
+        if book:
+            session.delete(book)
+            session.commit()
+            return True
+        return False

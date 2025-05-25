@@ -2,6 +2,8 @@ from flask import jsonify
 from marshmallow import ValidationError
 from werkzeug.exceptions import HTTPException
 
+import logging
+
 
 def register_error_handlers(app):
     @app.errorhandler(HTTPException)
@@ -21,6 +23,7 @@ def register_error_handlers(app):
 
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
+        logging.error(e)
         return jsonify({
             "error": {
                 "code": 500,

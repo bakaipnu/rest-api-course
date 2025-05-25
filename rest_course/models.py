@@ -1,7 +1,12 @@
-from typing import TypedDict
+from flask_sqlalchemy import SQLAlchemy
 
 
-class Book(TypedDict):
-    id: int
-    title: int
-    author: int
+db = SQLAlchemy()
+
+
+class Book(db.Model):
+    __tablename__ = "books"
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String, nullable=False)
+    author = db.Column(db.String, nullable=False)
