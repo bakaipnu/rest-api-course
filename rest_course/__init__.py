@@ -1,14 +1,34 @@
-from fastapi import FastAPI
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
+import os
 
-from rest_course.api import router
-from rest_course.errors import http_exception_handler, validation_exception_handler
+from flask import Flask
+from flask_migrate import Migrate
+
+from .errors import register_error_handlers
+from .models import db
+from .views import bp
 
 
-app = FastAPI()
+migrate = Migrate()
+
+POSTGRES_USER = os.getenv("POSTGRES_USER")
+POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+POSTGRES_DB = os.getenv("POSTGRES_DB")
+POSTGRES_HOST = os.getenv("POSTGRES_HOST")
 
 
-app.include_router(router)
-app.add_exception_handler(StarletteHTTPException, http_exception_handler)
-app.add_exception_handler(RequestValidationError, validation_exception_handler)
+def create_app():
+    app = Flask(__name__)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:5432/{POSTGRES_DB}"
+    )
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    db.init_app(app)
+
+    migrate.init_app(app, db)
+
+    app.register_blueprint(bp)
+    register_error_handlers(app)
+
+    return app
