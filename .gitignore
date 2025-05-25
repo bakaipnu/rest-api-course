@@ -1,3 +1,7 @@
 # Python bytecode cache
 __pycache__/
 *.py[cod]
+
+# Build artifacts
+build/
+rest_course.egg-info/
