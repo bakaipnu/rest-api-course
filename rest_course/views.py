@@ -2,7 +2,7 @@ from flask import Blueprint, jsonify, request, abort
 from marshmallow import ValidationError
 
 from .schemas import BookSchema
-from .storage import get_all_books, get_book_by_id, add_book, delete_book
+from .storage import get_books_after_cursor, get_book_by_id, add_book, delete_book
 
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -12,10 +12,17 @@ books_schema = BookSchema(many=True)
 
 @bp.route("/books", methods=["GET"])
 def list_books():
+    cursor = request.args.get("cursor", type=int)
     limit = request.args.get("limit", default=10, type=int)
-    offset = request.args.get("offset", default=0, type=int)
-    books = get_all_books(limit=limit, offset=offset)
-    return jsonify(books_schema.dump(books)), 200
+
+    books = get_books_after_cursor(cursor=cursor, limit=limit)
+
+    next_cursor = books[-1].id if books else None
+
+    return jsonify({
+        "results": books_schema.dump(books),
+        "next_cursor": next_cursor
+    }), 200
 
 
 @bp.route("/books/<int:book_id>", methods=["GET"])
