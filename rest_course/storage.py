@@ -19,6 +19,16 @@ def get_all_books(limit: int = 10, offset: int = 0) -> list[Book]:
         return session.query(Book).offset(offset).limit(limit).all()
 
 
+def get_books_after_cursor(cursor: int | None, limit: int = 10) -> list[Book]:
+    with SessionLocal() as session:
+        query = session.query(Book).order_by(Book.id)
+
+        if cursor is not None:
+            query = query.filter(Book.id > cursor)
+
+        return query.limit(limit).all()
+
+
 def get_book_by_id(book_id: int) -> Book | None:
     with SessionLocal() as session:
         return session.query(Book).filter(Book.id == book_id).first()
