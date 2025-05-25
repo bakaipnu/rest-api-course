@@ -1,11 +1,14 @@
-from flask import Flask
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from .errors import register_error_handlers
-from .views import bp
+from rest_course.api import router
+from rest_course.errors import http_exception_handler, validation_exception_handler
 
 
-def create_app():
-    app = Flask(__name__)
-    app.register_blueprint(bp)
-    register_error_handlers(app)
-    return app
+app = FastAPI()
+
+
+app.include_router(router)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)

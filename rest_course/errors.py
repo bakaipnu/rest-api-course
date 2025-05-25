@@ -1,30 +1,22 @@
-from flask import jsonify
-from marshmallow import ValidationError
-from werkzeug.exceptions import HTTPException
+from fastapi import Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
-def register_error_handlers(app):
-    @app.errorhandler(HTTPException)
-    def handle_http_exception(e):
-        response = {
-            "error": {
-                "code": e.code,
-                "name": e.name,
-                "description": e.description,
-            }
-        }
-        return jsonify(response), e.code
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {
+            "code": exc.status_code,
+            "name": exc.detail,
+            "description": "HTTP Exception"
+        }},
+    )
 
-    @app.errorhandler(ValidationError)
-    def handle_validation_error(e):
-        return jsonify({"errors": e.messages}), 400
 
-    @app.errorhandler(Exception)
-    def handle_unexpected_error(e):
-        return jsonify({
-            "error": {
-                "code": 500,
-                "name": "Internal Server Error",
-                "description": "An unexpected error occurred.",
-            }
-        }), 500
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=400,
+        content={"errors": exc.errors()},
+    )
