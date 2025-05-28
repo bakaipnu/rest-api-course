@@ -1,33 +1,47 @@
-from typing import List
+from flask import request
+from flask_restful import Resource, abort
+from marshmallow import ValidationError
 
-from fastapi import APIRouter, HTTPException
-
-from ..models.book import Book, BookCreate
-from ..storage.memory import get_all_books, get_book_by_id, add_book, delete_book
-
-
-router = APIRouter()
+from rest_course.schemas import BookSchema
+from rest_course.storage import get_books_after_cursor, get_book_by_id, add_book, delete_book
 
 
-@router.get("/", response_model=List[Book])
-async def list_books():
-    return await get_all_books()
+book_schema = BookSchema()
+books_schema = BookSchema(many=True)
 
 
-@router.get("/{book_id}", response_model=Book)
-async def get_book(book_id: int):
-    book = await get_book_by_id(book_id)
-    if not book:
-        raise HTTPException(status_code=404, detail="Book not found")
-    return book
+class BookListResource(Resource):
+    def get(self):
+        cursor = request.args.get("cursor", type=int)
+        limit = request.args.get("limit", default=10, type=int)
+        books = get_books_after_cursor(cursor=cursor, limit=limit)
+        next_cursor = books[-1].id if books else None
+
+        return {
+            "results": books_schema.dump(books),
+            "next_cursor": next_cursor
+        }, 200
+
+    def post(self):
+        try:
+            validated = book_schema.load(request.json)
+        except ValidationError as err:
+            return {"errors": err.messages}, 400
+
+        book = add_book(validated)
+        return book_schema.dump(book), 201
 
 
-@router.post("/", response_model=Book, status_code=201)
-async def create_book(book_data: BookCreate):
-    return await add_book(book_data)
+class BookResource(Resource):
+    def get(self, book_id):
+        book = get_book_by_id(book_id)
+        if book is None:
+            abort(404, message="Book not found")
+        return book_schema.dump(book), 200
 
-
-@router.delete("/{book_id}", status_code=204)
-async def remove_book(book_id: int):
-    if not await delete_book(book_id):
-        raise HTTPException(status_code=404, detail="Book not found")
+    def delete(self, book_id):
+        if delete_book(book_id):
+            return '', 204
+        else:
+            abort(404, message="Book not found")
+            return None
