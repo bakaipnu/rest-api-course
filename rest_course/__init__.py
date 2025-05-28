@@ -5,6 +5,8 @@ from flask_migrate import Migrate
 
 from .errors import register_error_handlers
 from .models import db
+from .schemas import BookSwaggerSchema
+from .swagger_config import register_swagger
 from .views import bp
 
 
@@ -30,5 +32,7 @@ def create_app():
 
     app.register_blueprint(bp)
     register_error_handlers(app)
+
+    register_swagger(app)
 
     return app
