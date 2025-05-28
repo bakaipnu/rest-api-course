@@ -1,0 +1,16 @@
+# Python bytecode cache
+__pycache__/
+*.py[cod]
+
+# Build artifacts
+build/
+rest_course.egg-info/
+
+# IDE configuration folder
+.idea/
+
+# Environment variable file
+.env
+
+# Version control folder
+.git/
