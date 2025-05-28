@@ -4,3 +4,4 @@ starlette==0.46.2
 uvicorn==0.34.2
 motor==3.7.1
 pymongo==4.13.0
+Deprecated==1.2.18
