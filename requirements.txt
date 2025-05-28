@@ -8,3 +8,4 @@ Flask-Migrate==4.1.0
 flask-marshmallow==1.3.0
 marshmallow-sqlalchemy==1.4.2
 Flask-RESTful==0.3.10
+flasgger==0.9.7.1
