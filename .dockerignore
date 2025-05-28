@@ -12,5 +12,5 @@ rest_course.egg-info/
 # Environment variable file
 .env
 
-# Version control folder
+# Git-related files
 .git/
