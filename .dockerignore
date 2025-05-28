@@ -9,5 +9,8 @@ rest_course.egg-info/
 # IDE configuration folder
 .idea/
 
+# Environment variable file
+.env
+
 # Git-related files
 .git/
